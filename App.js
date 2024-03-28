@@ -9,7 +9,7 @@ import { PaperProvider } from 'react-native-paper';
 import Constants from 'expo-constants';
 import MainAppBar from './components/MainAppBar';
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-
+import StepCounter, {steps} from './components/StepCounter';
 
 const settings = {
   backgroundColor: '#00a484'
@@ -70,6 +70,7 @@ export default function App() {
         />
         <SafeAreaView style={styles.container}>
           <Map location={location} />
+          <Text style={styles.step}>{steps}</Text>
         </SafeAreaView>
         </NavigationContainer>
       </PaperProvider>
