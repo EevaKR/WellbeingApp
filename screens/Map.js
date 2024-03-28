@@ -9,7 +9,6 @@ import MainAppBar from '../components/MainAppBar'
 
 
 
-//Marker does not exist
 export default function Map(props) {
 
     const [marker, setMarker] = useState(null)
@@ -53,7 +52,7 @@ export default function Map(props) {
         <MapView
         style={styles.map}
         region={props.location}
-        mapType='satellite'
+        mapType='standard'
         onLongPress={showMarker}
     >
         {marker &&

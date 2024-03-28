@@ -23,6 +23,7 @@ const icons = {
 
 // TO DO : APPBAR, STEPSCOUNTER, NAVIGAATIO LOPPUUN(katso jounin navi-ohje), GITREPO UUSI TEE!!
 //TEE PAIKANNUS OIKEIN (NYT KOVAKOODATTUNA KOORDIKSET)
+//Firebaseen tietokantaan joka päivälle oma rivi jonne askeleet tallentuu. Mihin tallentuu reitti???
 export default function App() {
 
   const [location, setLocation] = useState({
