@@ -10,7 +10,7 @@ import { Pedometer } from 'expo-sensors'
 
 
 
-export default function Map(props) {
+export default function Map(props, {navigation}) {
 
     // const [isPedometerAvailable, setIsPedometerAvailable] = useState('checking')
     // const [pastStepCount, setPastStepCount] = useState(0);
@@ -115,3 +115,21 @@ LAITA TÄÄ RESULTIIN KUHAN SAA TOIMIIN NÄKYMÄN, VOISKO JOKU ERI KOODI OLLA PA
 <Text>Walk! And watch this go up: {currentStepCount}</Text>
 </View>
  */
+
+
+
+/* 
+<MainAppBar
+          title="Map"
+          backgroundColor={settings.backgroundColor}
+          icon={icon}
+          getUserPosition={getUserPosition}
+        />
+
+/////////////////////////////////////////////
+
+          <SafeAreaView style={styles.container}>
+          <Map location={location} />
+          <Text style={styles.step}>{steps}</Text>
+        </SafeAreaView>
+        */

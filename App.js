@@ -10,6 +10,7 @@ import Constants from 'expo-constants';
 import MainAppBar from './components/MainAppBar';
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import StepCounter, {steps} from './components/StepCounter';
+import Home from './screens/Home'
 
 const settings = {
   backgroundColor: '#00a484'
@@ -60,20 +61,30 @@ export default function App() {
 
 
   return (
-      <PaperProvider>
+      
         <NavigationContainer>
-        <MainAppBar
-          title="Map"
-          backgroundColor={settings.backgroundColor}
-          icon={icon}
-          getUserPosition={getUserPosition}
+        <Stack.Navigator initialRouteName="WELCOME">
+        <Stack.Screen
+          name="Home"
+          component={Home}
+          options={{
+            title: 'Home',
+            headerTitle: 'Home'
+          }}
         />
-        <SafeAreaView style={styles.container}>
-          <Map location={location} />
-          <Text style={styles.step}>{steps}</Text>
-        </SafeAreaView>
+         <Stack.Screen
+          name="Map"
+          component={Map}
+          options={{
+            title: 'Map',
+            headerTitle: 'Map'
+          }}
+        />
+       
+      
+        </Stack.Navigator>
         </NavigationContainer>
-      </PaperProvider>
+     
   );
 }
 
@@ -86,3 +97,19 @@ const styles = StyleSheet.create({
     marginTop: Platform.OS === 'android' ? Constants.statusBarHeight : 0
   },
 });
+
+/*
+ <MainAppBar
+          title="Map"
+          backgroundColor={settings.backgroundColor}
+          icon={icon}
+          getUserPosition={getUserPosition}
+        />
+
+///////////////////
+  <SafeAreaView style={styles.container}>
+          <Map location={location} />
+          <Text style={styles.step}>{steps}</Text>
+        </SafeAreaView>
+
+*/
