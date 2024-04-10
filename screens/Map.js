@@ -10,66 +10,53 @@ import { Pedometer } from 'expo-sensors'
 
 
 
-export default function Map(props, {navigation}) {
 
-    // const [isPedometerAvailable, setIsPedometerAvailable] = useState('checking')
-    // const [pastStepCount, setPastStepCount] = useState(0);
-    // const [currentStepCount, setCurrentStepCount] = useState(0);
+export default function Map(props, { navigation }) {
 
-    // const subscribe = async () => {
-    //     const isAvailable = await Pedometer.isAvailableAsync();
-    //     setIsPedometerAvailable(String(isAvailable));
+    const [location, setLocation] = useState({
+        latitude: 65.0800,
+        longitude: 25.4800,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421
+    })
 
-    //     if (isAvailable) {
-    //         const end = new Date();
-    //         const start = new Date();
-    //         start.setDate(end.getDate() - 1);
 
-    //         const pastStepCountResult = await Pedometer.getStepCountAsync(start, end);
-    //         if (pastStepCountResult) {
-    //             setPastStepCount(pastStepCountResult.steps);
-    //         }
-    //         return Pedometer.watchStepCount(result => {
-    //             setCurrentStepCount(result.steps);
-    //         });
-    //     }
-    // };
 
-    // useEffect(() => {
-    //     const subscription = subscribe();
-    //     return () => subscription.remove();
-    // }, []);
+    const icons = {
+        location_not_known: 'crosshairs',
+        location_searching: 'crosshairs-question',
+        location_found: 'crosshairs-gps'
+    }
+
+    const [icon, setIcon] = useState(icons.location_not_known)
+
+
+
+    const getUserPosition = async () => {
+        let { status } = await Location.requestForegroundPermissionsAsync()
+
+        try {
+            if (status !== 'granted') {
+                console.log('Geolocation failed')
+                return
+            }
+            const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High })
+            setLocation({ ...location, "latitude": position.coords.latitude, "longitude": position.coords.longitude })
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    useEffect(() => {
+        (async () => {
+            getUserPosition()
+        })()
+    }, [])
+
+
 
     const [marker, setMarker] = useState(null)
 
-    // const [location, setLocation] = useState({
-    //     latitude: 65.0800,
-    //     longitude: 25.4800,
-    //     latitudeDelta: 0.0922,
-    //     longitudeDelta: 0.0421
-    // })
-
-
-    // const getUserPosition = async () => {
-    //     let { status } = await Location.requestForegroundPermissionsAsync()
-
-    //     try {
-    //         if (status !== 'granted') {
-    //             console.log('Geolocation failed')
-    //             return
-    //         }
-    //         const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High })
-    //         setLocation({ ...location, "latitude": position.coords.latitude, "longitude": position.coords.longitude })
-    //     } catch (error) {
-    //         console.log(error)
-    //     }
-    // }
-
-    // useEffect(() => {
-    //     (async () => {
-    //         getUserPosition()
-    //     })()
-    // }, [])
 
     const showMarker = (e) => {
         const coords = e.nativeEvent.coordinate
@@ -84,6 +71,9 @@ export default function Map(props, {navigation}) {
             region={props.location}
             mapType='standard'
             onLongPress={showMarker}
+            location={location}
+            icon={icon}
+            getUserPosition={getUserPosition}
         >
             {marker &&
                 <Marker
@@ -101,7 +91,7 @@ const styles = StyleSheet.create({
         height: '45%',
         width: '75%',
         marginTop: 10,
-        marginBottom: 450,
+        marginBottom: 10,
 
     },
 
