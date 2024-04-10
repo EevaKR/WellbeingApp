@@ -13,9 +13,10 @@ import StepCounter, { steps } from './components/StepCounter';
 import Home from './screens/Home'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import {location, getUserPosition, icon} from './screens/Map'
+import { location, getUserPosition, icon } from './screens/Map'
 import Tracker from './screens/Tracker';
 import { CustomCalendar } from './components/CustomCalendar';
+import PeriodCalendar from './components/PeriodCalendar';
 
 
 const settings = {
@@ -47,14 +48,14 @@ export default function App() {
     return (
       <View style={styles.map}>
         <Text style={styles.text}>{steps}</Text>
-        
+
         <Map location={location} icon={icon} getUserPosition={getUserPosition} />
-        
+
       </View>
     );
   }
 
-// antdesing: heart
+  // antdesing: heart
   function TrackersScreen() {
     return (
       <View style={styles.trackers}>
@@ -64,7 +65,7 @@ export default function App() {
     );
   }
 
-// FontAwesome5: pills
+  // FontAwesome5: pills
   function MedicineScreen() {
     return (
       <View style={styles.medicine}>
@@ -78,8 +79,7 @@ export default function App() {
   function PeriodScreen() {
     return (
       <View style={styles.period}>
-        <Text style={styles.text}>Period Screen</Text>
-
+        <PeriodCalendar />
       </View>
     );
   }
@@ -97,9 +97,9 @@ export default function App() {
           location={location}
           getUserPosition={getUserPosition}
           icon='arrowright'
-       
-         />
-           
+
+        />
+
         <Tab.Screen style={styles.medicine} name="Medicine" component={MedicineScreen} />
         <Tab.Screen style={styles.period} name="Period" component={PeriodScreen} />
         <Tab.Screen style={styles.trackers} name="Trackers" component={TrackersScreen} />
