@@ -9,61 +9,177 @@ import { PaperProvider } from 'react-native-paper';
 import Constants from 'expo-constants';
 import MainAppBar from './components/MainAppBar';
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import StepCounter, {steps} from './components/StepCounter';
+import StepCounter, { steps } from './components/StepCounter';
 import Home from './screens/Home'
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import {location, getUserPosition, icon} from './screens/Map'
+import Tracker from './screens/Tracker';
+import { CustomCalendar } from './components/CustomCalendar';
+
 
 const settings = {
   backgroundColor: '#00a484'
 }
 
-const icons = {
-  location_not_known: 'crosshairs',
-  location_searching: 'crosshairs-question',
-  location_found: 'crosshairs-gps'
-}
 
-// TO DO : APPBAR, STEPSCOUNTER, NAVIGAATIO LOPPUUN(katso jounin navi-ohje), GITREPO UUSI TEE!!
-//TEE PAIKANNUS OIKEIN (NYT KOVAKOODATTUNA KOORDIKSET)
 //Firebaseen tietokantaan joka päivälle oma rivi jonne askeleet tallentuu. Mihin tallentuu reitti???
+//voisiko etusivulla olla kuva joka haetaan firebasesta??? 
+//firebasen tilien teko, jokaisella käyttäjällä tulee olla tili jonne asiat tallentuu.
+// sivustolla tulee olla sivu jossa  käyttäjä voi tehdä käyttäjätunnuksen ja salasanan
+
 export default function App() {
-
-  const [location, setLocation] = useState({
-    latitude: 65.0800,
-    longitude: 25.4800,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421
-  })
-
-  const [icon, setIcon] = useState(icons.location_not_known)
 
   const Stack = createNativeStackNavigator();
 
-  const getUserPosition = async () => {
-    let { status } = await Location.requestForegroundPermissionsAsync()
-
-    try {
-      if (status !== 'granted') {
-        console.log('Geolocation failed')
-        return
-      }
-      const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High })
-      setLocation({ ...location, "latitude": position.coords.latitude, "longitude": position.coords.longitude })
-    } catch (error) {
-      console.log(error)
-    }
+  // antdesign: home
+  function HomeScreen() {
+    return (
+      <View style={styles.home}>
+        <CustomCalendar />
+      </View>
+    );
   }
 
-  useEffect(() => {
-    (async () => {
-      getUserPosition()
-    })()
-  }, [])
 
+  // tää löytyy jo jostain
+  function MapScreen() {
+    return (
+      <View style={styles.map}>
+        <Text style={styles.text}>{steps}</Text>
+        
+        <Map location={location} icon={icon} getUserPosition={getUserPosition} />
+        
+      </View>
+    );
+  }
 
+// antdesing: heart
+  function TrackersScreen() {
+    return (
+      <View style={styles.trackers}>
+        <Tracker />
+
+      </View>
+    );
+  }
+
+// FontAwesome5: pills
+  function MedicineScreen() {
+    return (
+      <View style={styles.medicine}>
+        <Text style={styles.text}>Medicine Screen</Text>
+
+      </View>
+    );
+  }
+
+  ////Fontisto : blood-drop
+  function PeriodScreen() {
+    return (
+      <View style={styles.period}>
+        <Text style={styles.text}>Period Screen</Text>
+
+      </View>
+    );
+  }
+
+  const Tab = createBottomTabNavigator();
+
+  /// MITEN JAKAA SIVUT ERI KOMPONENTTEIHIN???
   return (
-      
-        <NavigationContainer>
-        <Stack.Navigator initialRouteName="WELCOME">
+    <NavigationContainer>
+      <Tab.Navigator>
+        <Tab.Screen style={styles.home} name="Home" component={HomeScreen} />
+        <Tab.Screen style={styles.map}
+          name="Map"
+          component={MapScreen}
+          location={location}
+          getUserPosition={getUserPosition}
+          icon='arrowright'
+       
+         />
+           
+        <Tab.Screen style={styles.medicine} name="Medicine" component={MedicineScreen} />
+        <Tab.Screen style={styles.period} name="Period" component={PeriodScreen} />
+        <Tab.Screen style={styles.trackers} name="Trackers" component={TrackersScreen} />
+      </Tab.Navigator>
+    </NavigationContainer>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#93E9BE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: Platform.OS === 'android' ? Constants.statusBarHeight : 0
+  },
+  home: {
+    backgroundColor: '#93E9BE',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+
+  },
+  map: {
+    backgroundColor: '#93E9BE',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  medicine: {
+    backgroundColor: '#93E9BE',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  period: {
+    backgroundColor: '#93E9BE',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  trackers: {
+    backgroundColor: '#93E9BE',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  text: {
+    textShadowColor: '#EBEEF1',
+    color: '#3B9778',
+    textAlign: 'auto',
+    textTransform: 'uppercase',
+    textDecorationColor: '#EBEEF1',
+  }
+
+
+});
+
+/*
+ <MainAppBar
+          title="Map"
+          backgroundColor={settings.backgroundColor}
+          icon={icon}
+          getUserPosition={getUserPosition}
+        />
+
+///////////////////
+  <SafeAreaView style={styles.container}>
+          <Map location={location} />
+          <Text style={styles.step}>{steps}</Text>
+        </SafeAreaView>
+
+        ///////
+
+
+
+         <Stack.Navigator initialRouteName="WELCOME">
         <Stack.Screen
           name="Home"
           component={Home}
@@ -83,33 +199,5 @@ export default function App() {
        
       
         </Stack.Navigator>
-        </NavigationContainer>
-     
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: Platform.OS === 'android' ? Constants.statusBarHeight : 0
-  },
-});
-
-/*
- <MainAppBar
-          title="Map"
-          backgroundColor={settings.backgroundColor}
-          icon={icon}
-          getUserPosition={getUserPosition}
-        />
-
-///////////////////
-  <SafeAreaView style={styles.container}>
-          <Map location={location} />
-          <Text style={styles.step}>{steps}</Text>
-        </SafeAreaView>
 
 */
