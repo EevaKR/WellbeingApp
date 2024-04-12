@@ -17,6 +17,7 @@ import { location, getUserPosition, icon } from './screens/Map'
 import Tracker from './screens/Tracker';
 import { CustomCalendar } from './components/CustomCalendar';
 import PeriodCalendar from './components/PeriodCalendar';
+import Medicine from './screens/Medicine';
 
 
 const settings = {
@@ -29,80 +30,62 @@ const settings = {
 //firebasen tilien teko, jokaisella käyttäjällä tulee olla tili jonne asiat tallentuu.
 // sivustolla tulee olla sivu jossa  käyttäjä voi tehdä käyttäjätunnuksen ja salasanan
 
+const Tab = createBottomTabNavigator();
+
 export default function App() {
-
-  const Stack = createNativeStackNavigator();
-
-  // antdesign: home
-  function HomeScreen() {
-    return (
-      <View style={styles.home}>
-        <CustomCalendar />
-      </View>
-    );
-  }
-
-
-  // tää löytyy jo jostain
-  function MapScreen() {
-    return (
-      <View style={styles.map}>
-        <Text style={styles.text}>{steps}</Text>
-
-        <Map location={location} icon={icon} getUserPosition={getUserPosition} />
-
-      </View>
-    );
-  }
-
-  // antdesing: heart
-  function TrackersScreen() {
-    return (
-      <View style={styles.trackers}>
-        <Tracker />
-
-      </View>
-    );
-  }
-
-  // FontAwesome5: pills
-  function MedicineScreen() {
-    return (
-      <View style={styles.medicine}>
-        <Text style={styles.text}>Medicine Screen</Text>
-
-      </View>
-    );
-  }
-
-  ////Fontisto : blood-drop
-  function PeriodScreen() {
-    return (
-      <View style={styles.period}>
-        <PeriodCalendar />
-      </View>
-    );
-  }
-
-  const Tab = createBottomTabNavigator();
-
-  /// MITEN JAKAA SIVUT ERI KOMPONENTTEIHIN???
   return (
     <NavigationContainer>
       <Tab.Navigator>
-        <Tab.Screen style={styles.home} name="Home" component={HomeScreen} />
-        <Tab.Screen style={styles.map}
-          name="Map"
-          component={MapScreen}
-          location={location}
-          getUserPosition={getUserPosition}
-          icon='arrowright'
-
+        <Tab.Screen
+          name="Home"
+          component={Home}
+          options={{
+            tabBarLabel: 'Home',
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="home" color={color} size={size} />
+            ),
+          }}
         />
-
-        <Tab.Screen style={styles.medicine} name="Medicine" component={MedicineScreen} />
-        <Tab.Screen style={styles.period} name="Period" component={PeriodScreen} />
-        <Tab.Screen style={styles.trackers} name="Trackers" component={TrackersScreen} />
+        <Tab.Screen
+          name="Map"
+          component={Map}
+          options={{
+            tabBarLabel: 'Map',
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="map-marker" color={color} size={size} /> 
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Medicine"
+          component={Medicine}
+          options={{
+            tabBarLabel: 'Medicine',
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="medkit" color={color} size={size} /> 
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Period"
+          component={PeriodCalendar}
+          options={{
+            tabBarLabel: 'Period',
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="calendar" color={color} size={size} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Trackers"
+          component={Tracker}
+          options={{
+            tabBarLabel: 'Trackers',
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="heartbeat" color={color} size={size} />
+            ),
+          }}
+        />
       </Tab.Navigator>
     </NavigationContainer>
   );
