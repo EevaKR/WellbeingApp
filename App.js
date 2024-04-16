@@ -33,6 +33,18 @@ const settings = {
 const Tab = createBottomTabNavigator();
 
 export default function App() {
+
+  function MapScreen() {
+    return (
+      <View style={styles.map}>
+        <Text style={styles.text}>{steps}</Text>
+
+        <Map location={location} icon={icon} getUserPosition={getUserPosition} />
+
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
       <Tab.Navigator>
@@ -46,9 +58,9 @@ export default function App() {
             ),
           }}
         />
-        <Tab.Screen
+        <Tab.Screen  style={styles.map}
           name="Map"
-          component={Map}
+          component={MapScreen}
           options={{
             tabBarLabel: 'Map',
             tabBarIcon: ({ color, size }) => (
@@ -107,10 +119,12 @@ const styles = StyleSheet.create({
 
   },
   map: {
-    backgroundColor: '#93E9BE',
+    backgroundColor: '#18A558',
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    
+
   },
 
   medicine: {
@@ -141,46 +155,4 @@ const styles = StyleSheet.create({
     textDecorationColor: '#EBEEF1',
   }
 
-
 });
-
-/*
- <MainAppBar
-          title="Map"
-          backgroundColor={settings.backgroundColor}
-          icon={icon}
-          getUserPosition={getUserPosition}
-        />
-
-///////////////////
-  <SafeAreaView style={styles.container}>
-          <Map location={location} />
-          <Text style={styles.step}>{steps}</Text>
-        </SafeAreaView>
-
-        ///////
-
-
-
-         <Stack.Navigator initialRouteName="WELCOME">
-        <Stack.Screen
-          name="Home"
-          component={Home}
-          options={{
-            title: 'Home',
-            headerTitle: 'Home'
-          }}
-        />
-         <Stack.Screen
-          name="Map"
-          component={Map}
-          options={{
-            title: 'Map',
-            headerTitle: 'Map'
-          }}
-        />
-       
-      
-        </Stack.Navigator>
-
-*/
