@@ -20,8 +20,6 @@ export default function Map(props, { navigation }) {
         longitudeDelta: 0.0421
     })
 
-
-
     const icons = {
         location_not_known: 'crosshairs',
         location_searching: 'crosshairs-question',
@@ -30,11 +28,8 @@ export default function Map(props, { navigation }) {
 
     const [icon, setIcon] = useState(icons.location_not_known)
 
-
-
     const getUserPosition = async () => {
         let { status } = await Location.requestForegroundPermissionsAsync()
-
         try {
             if (status !== 'granted') {
                 console.log('Geolocation failed')
@@ -53,19 +48,13 @@ export default function Map(props, { navigation }) {
         })()
     }, [])
 
-
-
     const [marker, setMarker] = useState(null)
-
-
     const showMarker = (e) => {
         const coords = e.nativeEvent.coordinate
         setMarker(coords)
     }
 
-
     return (
-
         <MapView
             style={styles.map}
             region={props.location}
@@ -86,40 +75,10 @@ export default function Map(props, { navigation }) {
 }
 
 const styles = StyleSheet.create({
-
     map: {
         height: '45%',
         width: '75%',
         marginTop: 10,
         marginBottom: 10,
-
     },
-
 })
-
-/*
-LAITA TÄÄ RESULTIIN KUHAN SAA TOIMIIN NÄKYMÄN, VOISKO JOKU ERI KOODI OLLA PAREMPI
- <View style={styles.container}>
-<Text>Pedometer.isAvailableAsync(): {isPedometerAvailable}</Text>
-<Text>Steps taken in the last 24 hours: {pastStepCount}</Text>
-<Text>Walk! And watch this go up: {currentStepCount}</Text>
-</View>
- */
-
-
-
-/* 
-<MainAppBar
-          title="Map"
-          backgroundColor={settings.backgroundColor}
-          icon={icon}
-          getUserPosition={getUserPosition}
-        />
-
-/////////////////////////////////////////////
-
-          <SafeAreaView style={styles.container}>
-          <Map location={location} />
-          <Text style={styles.step}>{steps}</Text>
-        </SafeAreaView>
-        */

@@ -1,45 +1,69 @@
-import React, { useEffect, useState } from 'react';
-import { startCounter, stopCounter } from 'react-native-accurate-step-counter';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { useState, useEffect } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { Pedometer } from 'expo-sensors';
 
-const StepCounter = () => {
-  const [steps, setSteps] = useState(0);
+
+export default function StepCounter() {
+
+  const [pastStepCount, setPastStepCount] = useState(0);
+  const [currentStepCount, setCurrentStepCount] = useState(0);
 
   useEffect(() => {
-    const config = {
-      default_threshold: 15.0,
-      default_delay: 150000000,
-      cheatInterval: 3000,
-      onStepCountChange: (stepCount) => { setSteps(stepCount) },
-      onCheat: () => { console.log("User is Cheating") }
-    }
-    startCounter(config);
-    return () => { stopCounter() }
+    let subscription;
+
+    const subscribeToStepCount = async () => {
+      const start = new Date();
+      const end = new Date(); 
+      start.setHours(0 ,0 ,0 , 0); 
+
+      try {
+        const { steps } = await Pedometer.getStepCountAsync(start, end);
+        setCurrentStepCount(steps);
+
+        subscription = Pedometer.watchStepCount(result => {
+          setCurrentStepCount(result.steps)
+        })
+      } catch (error) {
+        console.error("Error getting step count:", error);
+      }
+
+     subscribeToStepCount();
+
+      return () => {
+        if (subscription) {
+          subscription.remove()
+        }
+      };
+    };
+
   }, []);
 
-  return (
-    <SafeAreaView>
-      <View style={styles.screen}>
-        <Text style={styles.step}>{steps}</Text>
-      </View>
-    </SafeAreaView>
-  );
-};
+
+
+return (
+  <View style={styles.container}>
+    <Text style={styles.text}>Steps taken yesterday: {pastStepCount}</Text>
+    <Text style={styles.text}>Current step counts: {currentStepCount}</Text>
+  </View>
+);
+}
 
 const styles = StyleSheet.create({
-  screen: {
-    width: '100%',
-    height: '100%',
-    display: 'flex',
+  container: {
+    flex: 1,
+    marginTop: 15,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
-  step: {
-    fontSize: 36
-  }
+
+  text: {
+    textShadowColor: '#385E72',
+    color: '#385E72',
+    textAlign: 'auto',
+    textTransform: 'uppercase',
+    textDecorationColor: '#385E72',
+  },
 });
 
-// export {
-//     steps
-// }
-export default StepCounter;
+
+//<Text style={styles.text}>Pedometer.isAvailableAsync(): {isPedometerAvailable}</Text>

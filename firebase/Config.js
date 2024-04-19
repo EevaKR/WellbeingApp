@@ -2,6 +2,7 @@ import { View, Text } from 'react-native'
 import React from 'react'
 import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
+import {collection, addDoc} from 'firebase/firestore'
 
 
 const firebaseConfig = {
@@ -18,6 +19,14 @@ initializeApp(firebaseConfig);
 
 const firestore = getFirestore();
 
+const STEPS = 'steps'
+
+const PICTURES = 'pictures'
+
 export {
     firestore,
+    collection,
+    addDoc,
+    STEPS,
+    PICTURES
 }; 

@@ -9,7 +9,6 @@ import { PaperProvider } from 'react-native-paper';
 import Constants from 'expo-constants';
 import MainAppBar from './components/MainAppBar';
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import StepCounter, { steps } from './components/StepCounter';
 import Home from './screens/Home'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -18,33 +17,90 @@ import Tracker from './screens/Tracker';
 import { CustomCalendar } from './components/CustomCalendar';
 import PeriodCalendar from './components/PeriodCalendar';
 import Medicine from './screens/Medicine';
+import StepCounter from './components/StepCounter';
+import { firestore, addDoc, STEPS, collection, PICTURES } from './firebase/Config'
+import Camera from './components/Camera';
+import MapView from './screens/Map'
 
 
 const settings = {
   backgroundColor: '#00a484'
 }
 
-
-//Firebaseen tietokantaan joka päivälle oma rivi jonne askeleet tallentuu. Mihin tallentuu reitti???
-//voisiko etusivulla olla kuva joka haetaan firebasesta??? 
-//firebasen tilien teko, jokaisella käyttäjällä tulee olla tili jonne asiat tallentuu.
-// sivustolla tulee olla sivu jossa  käyttäjä voi tehdä käyttäjätunnuksen ja salasanan
-
 const Tab = createBottomTabNavigator();
 
 export default function App() {
 
+
+  const save = async (stepCount, pictureUri) => {
+    try {
+      const stepDocRef = await addDoc(collection(firestore, STEPS), {
+        number: stepCount
+      })
+
+      console.log('Steps saved.')
+      const pictureDocRef = await addDoc(collection(firestore, PICTURES), {
+        url: pictureUri
+      });
+      console.log('Picture saved.');
+
+      setPastStepCount('');
+      // Clear picture state or perform any necessary cleanup
+      setPictureUri('');
+
+      console.log('Data saved successfully.');
+    } catch (error) {
+      console.error('Error saving data:', error);
+    }
+  };
+
+  function HomeScreen() {
+    return (
+      <View style={styles.home}>
+        <CustomCalendar />
+      </View>
+    );
+  }
   function MapScreen() {
     return (
       <View style={styles.map}>
-        <Text style={styles.text}>{steps}</Text>
-
-        <Map location={location} icon={icon} getUserPosition={getUserPosition} />
-
+        <Map/>
+        <StepCounter style={styles.step} />
       </View>
     );
   }
 
+
+  function CameraScreen() {
+    return (
+      <View style={styles.camera}>
+        <Camera />
+      </View>
+    );
+  }
+
+  function TrackersScreen() {
+    return (
+      <View style={styles.trackers}>
+        <Tracker />
+      </View>
+    );
+  }
+
+  function MedicineScreen() {
+    return (
+      <View style={styles.medicine}>
+      </View>
+    );
+  }
+
+  function PeriodScreen() {
+    return (
+      <View style={styles.period}>
+        <PeriodCalendar />
+      </View>
+    );
+  }
   return (
     <NavigationContainer>
       <Tab.Navigator>
@@ -58,13 +114,13 @@ export default function App() {
             ),
           }}
         />
-        <Tab.Screen  style={styles.map}
+        <Tab.Screen style={styles.map}
           name="Map"
           component={MapScreen}
           options={{
             tabBarLabel: 'Map',
             tabBarIcon: ({ color, size }) => (
-              <Icon name="map-marker" color={color} size={size} /> 
+              <Icon name="map-marker" color={color} size={size} />
             ),
           }}
         />
@@ -74,7 +130,17 @@ export default function App() {
           options={{
             tabBarLabel: 'Medicine',
             tabBarIcon: ({ color, size }) => (
-              <Icon name="medkit" color={color} size={size} /> 
+              <Icon name="medkit" color={color} size={size} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Camera"
+          component={Camera}
+          options={{
+            tabBarLabel: 'Camera',
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="camera" color={color} size={size} />
             ),
           }}
         />
@@ -106,53 +172,65 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#93E9BE',
+    backgroundColor: '##B7CFDC',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: Platform.OS === 'android' ? Constants.statusBarHeight : 0
   },
   home: {
-    backgroundColor: '#93E9BE',
+    backgroundColor: '#B7CFDC',
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
 
   },
   map: {
-    backgroundColor: '#18A558',
+    backgroundColor: '#B7CFDC',
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    
-
+    marginTop: '10',
+    marginBottom: '20'
   },
 
   medicine: {
-    backgroundColor: '#93E9BE',
+    backgroundColor: '##B7CFDC',
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   period: {
-    backgroundColor: '#93E9BE',
+    backgroundColor: '##B7CFDC',
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   trackers: {
-    backgroundColor: '#93E9BE',
+    backgroundColor: '##B7CFDC',
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   text: {
-    textShadowColor: '#EBEEF1',
+    textShadowColor: '#385E72',
     color: '#3B9778',
     textAlign: 'auto',
     textTransform: 'uppercase',
-    textDecorationColor: '#EBEEF1',
-  }
+    textDecorationColor: '#385E72',
+  },
 
+  step: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  camera: {
+    backgroundColor: '##B7CFDC',
+    flex: 1,
+    alignItems: 'center',
+    marginTop: '10',
+    marginBottom: '20'
+  }
 });

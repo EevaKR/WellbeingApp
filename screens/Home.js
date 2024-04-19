@@ -7,21 +7,21 @@ import React, { useLayoutEffect } from 'react';
 
 export default function Home({navigation}) {
 
-  useLayoutEffect(() => {
-    navigation.setOptions?.({
-        headerStyle: {
-            backgroundColor: ' #FB8DA0'
-        },
-        headerRight: () => (
-            <FontAwesome
-                style={styles.navButton}
-                name='map-marker'
-                size={24}
-                onPress={() => navigation.navigate('Map')}
-            />
-        )
-    })
-}, [])
+//   useLayoutEffect(() => {
+//     navigation.setOptions?.({
+//         headerStyle: {
+//             backgroundColor: ' #FB8DA0'
+//         },
+//         headerRight: () => (
+//             <FontAwesome
+//                 style={styles.navButton}
+//                 name='map-marker'
+//                 size={24}
+//                 onPress={() => navigation.navigate('Map')}
+//             />
+//         )
+//     })
+// }, [])
 
 
   return (
@@ -38,8 +38,11 @@ const styles= StyleSheet.create({
 
   },
   text: {
+    textShadowColor: '#EBEEF1',
     fontSize: 24,
-    alignContent: 'center',
-
-  }
+    textAlign: 'auto',
+    
+    textDecorationColor: '#EBEEF1',
+    justifyContent: 'center',
+  },
 })
