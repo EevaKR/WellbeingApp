@@ -1,12 +1,16 @@
-import { View, Text } from 'react-native'
+import { View, Text, Button } from 'react-native'
 import React from 'react'
-import MapView, { Marker } from 'react-native-maps'
+import MapView, { Marker , PROVIDER_GOOGLE} from 'react-native-maps'
 import { StyleSheet } from 'react-native'
 import { useState, useEffect } from 'react'
 import * as Location from 'expo-location'
 import { PaperProvider } from 'react-native-paper'
 import MainAppBar from '../components/MainAppBar'
 import { Pedometer } from 'expo-sensors'
+import { Polyline } from 'react-native-maps';
+
+
+
 
 
 
@@ -28,6 +32,9 @@ export default function Map(props, { navigation }) {
 
     const [icon, setIcon] = useState(icons.location_not_known)
 
+    const [routeCoordinates, setRouteCoordinates] = useState([]);
+
+
     const getUserPosition = async () => {
         let { status } = await Location.requestForegroundPermissionsAsync()
         try {
@@ -43,6 +50,34 @@ export default function Map(props, { navigation }) {
     }
 
     useEffect(() => {
+      getLocationPermission();
+    }, []);
+
+
+    const getLocationPermission = async () => {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.error('Location permission not granted');
+        } else {
+          startLocationTracking();
+        }
+      };
+
+      const startLocationTracking = async () => {
+        Location.watchPositionAsync(
+          { accuracy: Location.Accuracy.BestForNavigation, timeInterval: 1000 },
+          (newLocation) => {
+            const { latitude, longitude } = newLocation.coords;
+            const newCoordinates = [...routeCoordinates, { latitude, longitude }];
+            setRouteCoordinates(newCoordinates);
+            setLocation(newLocation);
+          }
+        );
+      };
+
+   
+
+    useEffect(() => {
         (async () => {
             getUserPosition()
         })()
@@ -55,30 +90,28 @@ export default function Map(props, { navigation }) {
     }
 
     return (
+        <View style={styles.container}>
         <MapView
             style={styles.map}
-            region={props.location}
+            region={location}
             mapType='standard'
             onLongPress={showMarker}
-            location={location}
-            icon={icon}
-            getUserPosition={getUserPosition}
-        >
-            {marker &&
-                <Marker
-                    title="My marker"
-                    coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
-                />
-            }
+
+      >
+        {location && <Polyline coordinates={routeCoordinates} strokeWidth={5} />}       
         </MapView>
+        <Button title="Start Tracking" onPress={startLocationTracking} />
+        </View>
     )
 }
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        
+    },
     map: {
-        height: '45%',
-        width: '75%',
-        marginTop: 10,
-        marginBottom: 10,
+     flex: 1,
+      
     },
 })

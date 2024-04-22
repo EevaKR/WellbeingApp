@@ -21,17 +21,16 @@ import StepCounter from './components/StepCounter';
 import { firestore, addDoc, STEPS, collection, PICTURES } from './firebase/Config'
 import Camera from './components/Camera';
 import MapView from './screens/Map'
+import * as Location from 'expo-location'
 
 
-const settings = {
-  backgroundColor: '#00a484'
-}
-
-const Tab = createBottomTabNavigator();
-
-export default function App() {
 
 
+
+
+export default function App(props, Location) {
+
+  const Stack = createNativeStackNavigator();
   const save = async (stepCount, pictureUri) => {
     try {
       const stepDocRef = await addDoc(collection(firestore, STEPS), {
@@ -64,7 +63,9 @@ export default function App() {
   function MapScreen() {
     return (
       <View style={styles.map}>
-        <Map/>
+        <Map
+        region={{location}}
+        />
         <StepCounter style={styles.step} />
       </View>
     );
@@ -101,12 +102,15 @@ export default function App() {
       </View>
     );
   }
+
+  const Tab = createBottomTabNavigator();
+
   return (
     <NavigationContainer>
       <Tab.Navigator>
-        <Tab.Screen
+        <Tab.Screen style={styles.home}
           name="Home"
-          component={Home}
+          component={HomeScreen}
           options={{
             tabBarLabel: 'Home',
             tabBarIcon: ({ color, size }) => (
@@ -126,7 +130,7 @@ export default function App() {
         />
         <Tab.Screen
           name="Medicine"
-          component={Medicine}
+          component={MedicineScreen}
           options={{
             tabBarLabel: 'Medicine',
             tabBarIcon: ({ color, size }) => (
@@ -135,6 +139,7 @@ export default function App() {
           }}
         />
         <Tab.Screen
+        style={styles.camera}
           name="Camera"
           component={Camera}
           options={{
@@ -145,8 +150,9 @@ export default function App() {
           }}
         />
         <Tab.Screen
+        style= {styles.period}
           name="Period"
-          component={PeriodCalendar}
+          component={PeriodScreen}
           options={{
             tabBarLabel: 'Period',
             tabBarIcon: ({ color, size }) => (
@@ -155,8 +161,9 @@ export default function App() {
           }}
         />
         <Tab.Screen
+         style= {styles.trackers}
           name="Trackers"
-          component={Tracker}
+          component={TrackersScreen}
           options={{
             tabBarLabel: 'Trackers',
             tabBarIcon: ({ color, size }) => (
@@ -172,14 +179,14 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '##B7CFDC',
+    backgroundColor: '#B7CFDC',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: Platform.OS === 'android' ? Constants.statusBarHeight : 0
   },
   home: {
     backgroundColor: '#B7CFDC',
-    flex: 1,
+    flex: 10,
     alignItems: 'center',
     justifyContent: 'center',
 
@@ -193,21 +200,21 @@ const styles = StyleSheet.create({
   },
 
   medicine: {
-    backgroundColor: '##B7CFDC',
+    backgroundColor: '#B7CFDC',
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   period: {
-    backgroundColor: '##B7CFDC',
+    backgroundColor: '#B7CFDC',
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   trackers: {
-    backgroundColor: '##B7CFDC',
+    backgroundColor: '#B7CFDC',
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
