@@ -7,7 +7,6 @@ import Map from './screens/Map';
 import { useState, useEffect } from 'react';
 import { PaperProvider } from 'react-native-paper';
 import Constants from 'expo-constants';
-import MainAppBar from './components/MainAppBar';
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import Home from './screens/Home'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -18,40 +17,103 @@ import { CustomCalendar } from './components/CustomCalendar';
 import PeriodCalendar from './components/PeriodCalendar';
 import Medicine from './screens/Medicine';
 import StepCounter from './components/StepCounter';
-import { firestore, addDoc, STEPS, collection, PICTURES } from './firebase/Config'
+import { firestore, addDoc, STEPS, collection, PICTURES, query } from './firebase/Config'
 import Camera from './components/Camera';
-import MapView from './screens/Map'
-import * as Location from 'expo-location'
-
-
-
-
+import { convertFirebaseTimeStampToJS } from './helpers/Functions';
+import { QuerySnapshot, onSnapshot, serverTimestamp } from './firebase/Config';
+import { useRef } from 'react';
 
 
 export default function App(props, Location) {
 
   const Stack = createNativeStackNavigator();
-  const save = async (stepCount, pictureUri) => {
-    try {
-      const stepDocRef = await addDoc(collection(firestore, STEPS), {
-        number: stepCount
-      })
+  const [currentStepCount, setCurrentStepCount] = useState('');
+  const cameraRef = useRef(null);
 
-      console.log('Steps saved.')
-      const pictureDocRef = await addDoc(collection(firestore, PICTURES), {
-        url: pictureUri
+
+  useEffect(() => {
+    const q = query(collection(firestore, STEPS));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        setCurrentStepCount(doc.data().number);
       });
-      console.log('Picture saved.');
+    });
 
-      setPastStepCount('');
-      // Clear picture state or perform any necessary cleanup
-      setPictureUri('');
+    return () => unsubscribe();
+  }, []);
 
-      console.log('Data saved successfully.');
+  const saveStepCount = async (stepCount) => {
+    try {
+      const docRef = await addDoc(collection(firestore, STEPS), {
+        number: stepCount,
+        created: serverTimestamp()
+      });
+      setCurrentStepCount('');
+      console.log('Steps saved');
     } catch (error) {
-      console.error('Error saving data:', error);
+      console.error('Error saving steps:', error);
     }
   };
+
+  const save = async (stepCount) => {
+    try {
+      const docRef = await addDoc(collection(firestore, STEPS), {
+        number: stepCount,
+        created: serverTimestamp()
+      });
+      console.log('Steps saved.')
+    } catch (error) {
+      console.log('Error saving steps: ', error)
+    }
+
+    useEffect(() => {
+      const q = query(collection(firestore, STEPS));
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const tempSteps = [];
+
+        querySnapshot.forEach((doc) => {
+          const stepObject = {
+            id: doc.id,
+            number: doc.data().number,
+            created: convertFirebaseTimeStampToJS(doc.data().created)
+          };
+          tempSteps.push(stepObject);
+        });
+      });
+
+
+      return () => unsubscribe();
+    }, []);
+
+
+    useEffect(() => {
+      let subscription;
+      const subscribeToStepCount = async () => {
+        const start = new Date();
+        const end = new Date();
+        start.setHours(0, 0, 0, 0);
+        try {
+          const { steps } = await Pedometer.getStepCountAsync(start, end);
+          setCurrentStepCount(steps);
+          subscription = Pedometer.watchStepCount(result => {
+            setCurrentStepCount(result.steps)
+          })
+        } catch (error) {
+          console.error("Error getting step count:", error);
+        }
+        subscribeToStepCount();
+        return () => {
+          if (subscription) {
+            subscription.remove()
+          }
+        };
+      };
+
+    }, []);
+
+  }
+
+  //kalenteri suuremmaksi
 
   function HomeScreen() {
     return (
@@ -64,7 +126,7 @@ export default function App(props, Location) {
     return (
       <View style={styles.map}>
         <Map
-        region={{location}}
+          region={{ location }}
         />
         <StepCounter style={styles.step} />
       </View>
@@ -130,7 +192,7 @@ export default function App(props, Location) {
         />
         <Tab.Screen
           name="Medicine"
-          component={MedicineScreen}
+          component={Medicine}
           options={{
             tabBarLabel: 'Medicine',
             tabBarIcon: ({ color, size }) => (
@@ -139,7 +201,7 @@ export default function App(props, Location) {
           }}
         />
         <Tab.Screen
-        style={styles.camera}
+          style={styles.camera}
           name="Camera"
           component={Camera}
           options={{
@@ -150,7 +212,7 @@ export default function App(props, Location) {
           }}
         />
         <Tab.Screen
-        style= {styles.period}
+          style={styles.period}
           name="Period"
           component={PeriodScreen}
           options={{
@@ -161,7 +223,7 @@ export default function App(props, Location) {
           }}
         />
         <Tab.Screen
-         style= {styles.trackers}
+          style={styles.trackers}
           name="Trackers"
           component={TrackersScreen}
           options={{

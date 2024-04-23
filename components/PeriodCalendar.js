@@ -5,6 +5,7 @@ import moment from 'moment';
 import { Calendar } from 'react-native-calendars';
 import { firestore, collection, addDoc, deleteDoc, doc, query, where, getDocs } from "../firebase/Config";
 
+
 const _format = 'YYYY-MM-DD';
 const _today = moment().format(_format);
 const _maxDate = '2030-12-31';
@@ -21,15 +22,14 @@ const PeriodCalendar = () => {
                 querySnapshot.forEach((doc) => {
                     dates.push(doc.data().date);
                 });
-
                 setSelectedDates(dates);
-
                 const updatedMarkedDates = dates.reduce((acc, date) => {
-                    acc[date] = { selected: true, selectedColor: 'salmon' };
+                    acc[date] = { selected: true, selectedColor: '#D3B5E5' };
                     return acc;
                 }, {});
                 setMarkedDates(updatedMarkedDates);
             } catch (error) {
+
                 console.error('Error loading selected dates from Firestore:', error);
             }
         };
@@ -39,20 +39,20 @@ const PeriodCalendar = () => {
     const onDaySelect = (day) => {
         const selectedDay = moment(day.dateString).format(_format);
         const isSelected = selectedDates.includes(selectedDay);
-
         let updatedMarkedDates = { ...markedDates };
         let updatedSelectedDates = [...selectedDates];
 
         if (isSelected) {
+            // Deselect the day 
             delete updatedMarkedDates[selectedDay];
             updatedSelectedDates = selectedDates.filter(date => date !== selectedDay);
             deleteSelectedDayFromFirestore(selectedDay);
         } else {
-            updatedMarkedDates[selectedDay] = { selected: true, selectedColor: 'salmon' };
+            // Select the day 
+            updatedMarkedDates[selectedDay] = { selected: true, selectedColor: '#D3B5E5' };
             updatedSelectedDates.push(selectedDay);
             saveSelectedDayToFirestore(selectedDay);
         }
-
         setMarkedDates(updatedMarkedDates);
         setSelectedDates(updatedSelectedDates);
     };
@@ -79,10 +79,10 @@ const PeriodCalendar = () => {
         }
     };
 
-
-
     return (
         <SafeAreaView style={styles.container}>
+            <Text style={styles.calendarHeader}>Period Calendar </Text>
+            <Text style={styles.text}>add your cycle:</Text>
             <Calendar style={styles.calendar}
                 maxDate={_maxDate}
                 onDayPress={onDaySelect}
@@ -92,26 +92,48 @@ const PeriodCalendar = () => {
             <SymptomModal />
         </SafeAreaView>
     );
-
 };
+
 
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        marginTop: 100,
+        marginTop: 50,
+        width: 350,
     },
     calendar: {
         borderRadius: 10,
-        margin: 12,
+        marginLeft: 10,
+        marginRight: 10,
+        marginBottom: 10,
+        marginTop: 2,
         elevation: 5,
         borderWidth: 2,
-        borderColor: 'salmon',
+        borderColor: '#D3B5E5',
         backgroundColor: 'white',
         paddingBottom: 9,
+        paddingLeft: 9,
+        paddingRight: 9,
+    },
+    calendarHeader: {
+        textAlign: 'left',
+        paddingLeft: 14,
+        marginBottom: 1,
+        fontWeight: 'bold',
+        color: 'black',
+        fontSize: 20,
+    },
+    calendarText: {
+        alignItems: 'center',
+        textAlign: 'left',
+        paddingLeft: 18,
+    },
+    text: {
+        marginLeft: 15,
+        marginBottom: 3,
     },
 
-}
-);
+});
 
 export default PeriodCalendar; 
