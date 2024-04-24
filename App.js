@@ -7,7 +7,6 @@ import Map from './screens/Map';
 import { useState, useEffect } from 'react';
 import { PaperProvider } from 'react-native-paper';
 import Constants from 'expo-constants';
-import MainAppBar from './components/MainAppBar';
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import Home from './screens/Home'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -18,40 +17,18 @@ import { CustomCalendar } from './components/CustomCalendar';
 import PeriodCalendar from './components/PeriodCalendar';
 import Medicine from './screens/Medicine';
 import StepCounter from './components/StepCounter';
-import { firestore, addDoc, STEPS, collection, PICTURES } from './firebase/Config'
+import { firestore, addDoc, STEPS, collection, PICTURES, query } from './firebase/Config'
 import Camera from './components/Camera';
-import MapView from './screens/Map'
-import * as Location from 'expo-location'
+import { convertFirebaseTimeStampToJS } from './helpers/Functions';
+import { QuerySnapshot, onSnapshot, serverTimestamp } from './firebase/Config';
+import { useRef } from 'react';
 
 
-
-
-
-
-export default function App(props, Location) {
+export default function App() {
 
   const Stack = createNativeStackNavigator();
-  const save = async (stepCount, pictureUri) => {
-    try {
-      const stepDocRef = await addDoc(collection(firestore, STEPS), {
-        number: stepCount
-      })
 
-      console.log('Steps saved.')
-      const pictureDocRef = await addDoc(collection(firestore, PICTURES), {
-        url: pictureUri
-      });
-      console.log('Picture saved.');
-
-      setPastStepCount('');
-      // Clear picture state or perform any necessary cleanup
-      setPictureUri('');
-
-      console.log('Data saved successfully.');
-    } catch (error) {
-      console.error('Error saving data:', error);
-    }
-  };
+  //kalenteri suuremmaksi
 
   function HomeScreen() {
     return (
@@ -64,7 +41,7 @@ export default function App(props, Location) {
     return (
       <View style={styles.map}>
         <Map
-        region={{location}}
+          region={{ location }}
         />
         <StepCounter style={styles.step} />
       </View>
@@ -130,7 +107,7 @@ export default function App(props, Location) {
         />
         <Tab.Screen
           name="Medicine"
-          component={MedicineScreen}
+          component={Medicine}
           options={{
             tabBarLabel: 'Medicine',
             tabBarIcon: ({ color, size }) => (
@@ -139,18 +116,18 @@ export default function App(props, Location) {
           }}
         />
         <Tab.Screen
-        style={styles.camera}
+          style={styles.camera}
           name="Camera"
           component={Camera}
           options={{
-            tabBarLabel: 'Camera',
+            tabBarLabel: 'MyCamera',
             tabBarIcon: ({ color, size }) => (
               <Icon name="camera" color={color} size={size} />
             ),
           }}
         />
         <Tab.Screen
-        style= {styles.period}
+          style={styles.period}
           name="Period"
           component={PeriodScreen}
           options={{
@@ -161,7 +138,7 @@ export default function App(props, Location) {
           }}
         />
         <Tab.Screen
-         style= {styles.trackers}
+          style={styles.trackers}
           name="Trackers"
           component={TrackersScreen}
           options={{

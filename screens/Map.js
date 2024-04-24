@@ -1,20 +1,16 @@
 import { View, Text, Button } from 'react-native'
-import React from 'react'
 import MapView, { Marker , PROVIDER_GOOGLE} from 'react-native-maps'
 import { StyleSheet } from 'react-native'
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react' // Add missing import statement
 import * as Location from 'expo-location'
 import { PaperProvider } from 'react-native-paper'
 import MainAppBar from '../components/MainAppBar'
 import { Pedometer } from 'expo-sensors'
 import { Polyline } from 'react-native-maps';
+import React from 'react'; 
 
 
-
-
-
-
-
+//stop tracking 
 export default function Map(props, { navigation }) {
 
     const [location, setLocation] = useState({
@@ -31,7 +27,7 @@ export default function Map(props, { navigation }) {
     }
 
     const [icon, setIcon] = useState(icons.location_not_known)
-
+    const [locationSubscription, setLocationSubscription] = useState('');
     const [routeCoordinates, setRouteCoordinates] = useState([]);
 
 
@@ -64,24 +60,28 @@ export default function Map(props, { navigation }) {
       };
 
       const startLocationTracking = async () => {
-        Location.watchPositionAsync(
-          { accuracy: Location.Accuracy.BestForNavigation, timeInterval: 1000 },
-          (newLocation) => {
-            const { latitude, longitude } = newLocation.coords;
-            const newCoordinates = [...routeCoordinates, { latitude, longitude }];
-            setRouteCoordinates(newCoordinates);
-            setLocation(newLocation);
-          }
-        );
+        if (!locationSubscription) {
+          const subscription = Location.watchPositionAsync(
+            { accuracy: Location.Accuracy.BestForNavigation, timeInterval: 1000 },
+            (newLocation) => {
+              const { latitude, longitude } = newLocation.coords;
+              const newCoordinates = [...routeCoordinates, { latitude, longitude }];
+              setRouteCoordinates(newCoordinates);
+              setLocation(newLocation);
+            }
+          );
+          setLocationSubscription(subscription);
+        }
       };
 
-   
+      const stopLocationTracking = async () => {
+        await Location.stopLocationUpdatesAsync();
+      };
 
-    useEffect(() => {
-        (async () => {
-            getUserPosition()
-        })()
-    }, [])
+      useEffect(() => {
+        getUserPosition();
+      }, []);
+      
 
     const [marker, setMarker] = useState(null)
     const showMarker = (e) => {
@@ -101,17 +101,19 @@ export default function Map(props, { navigation }) {
         {location && <Polyline coordinates={routeCoordinates} strokeWidth={5} />}       
         </MapView>
         <Button title="Start Tracking" onPress={startLocationTracking} />
+        <Button title="Stop Tracking" onPress={stopLocationTracking} />
         </View>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+      flex: 1,
         
     },
     map: {
-     flex: 1,
-      
+      flex: 1,
+      width: 500,
+      height: 1000,
     },
 })

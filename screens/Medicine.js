@@ -6,18 +6,20 @@ import {
   FlatList,
   StyleSheet
 } from "react-native";
-import { collection, addDoc, doc, updateDoc, Timestamp, getDocs, onSnapshot } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc, onSnapshot } from "firebase/firestore";
 import { firestore } from '../firebase/Config';
 import ModalComponent from '../components/ModalComponent';
+import { printToFileAsync } from 'expo-print';
+import { shareAsync } from 'expo-sharing';
 
 export default function Medicine() {
   const [meds, setMeds] = useState([]);
-  const [editIndex, setEditIndex] = useState(-1);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [medicine, setMedicine] = useState('');
   const [dosage, setDosage] = useState('');
   const [type, setType] = useState('');
   const [unit, setUnit] = useState('');
+
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(firestore, 'medicines'), (snapshot) => {
@@ -33,15 +35,50 @@ export default function Medicine() {
     setIsModalVisible(!isModalVisible);
   };
 
+  const formatDate = (date) => {
+    if (!date) {
+      return null;
+    }
+  
+    if (date instanceof Date) {
+      const year = date.getFullYear();
+      let month = date.getMonth() + 1;
+      if (month < 10) {
+        month = '0' + month;
+      }
+      let day = date.getDate();
+      if (day < 10) {
+        day = '0' + day;
+      }
+      return `${year}-${month}-${day}`;
+    } else if (date.toDate instanceof Function) {
+      const timestamp = date.toDate();
+      const year = timestamp.getFullYear();
+      let month = timestamp.getMonth() + 1;
+      if (month < 10) {
+        month = '0' + month;
+      }
+      let day = timestamp.getDate();
+      if (day < 10) {
+        day = '0' + day;
+      }
+      return `${year}-${month}-${day}`;
+    }
+  
+    return date;
+  };
+  
+
   const handleSaveMedicine = async (medicine, dosage, type, unit) => {
     try {
+      const formattedDate = formatDate(new Date)
       await addDoc(collection(firestore, 'medicines'), {
         medicine: medicine,
         dosage: dosage,
         type: type,
         unit: unit,
         taken: false,
-        timestamp: Timestamp.now(),
+        timestamp: formattedDate
       });
       toggleModal();
     } catch (error) {
@@ -49,26 +86,43 @@ export default function Medicine() {
     }
   };
 
-  const handleEditMedicine = (index) => {
+
+  const editMedicine = (index) => {
     const medicineToEdit = meds[index];
     setMedicine(medicineToEdit.medicine);
     setDosage(medicineToEdit.dosage);
     setType(medicineToEdit.type);
     setUnit(medicineToEdit.unit);
-    setEditIndex(index);
     setIsModalVisible(true);
   };
 
-  const handleDeleteMedicine = async (index) => {
+  const takeMedicine = async (index) => {
     const medicineToUpdate = meds[index];
     try {
       const medicineDocRef = doc(firestore, "medicines", medicineToUpdate.id);
       await updateDoc(medicineDocRef, { taken: true });
 
-      const updatedMeds = meds.filter(medicine => mecidine.id !== medicineToUpdate.id);
+      const updatedMeds = meds.filter(medicine => medicine.id !== medicineToUpdate.id);
       setMeds(updatedMeds);
     } catch (error) {
       console.error("Error updating medicines in Firebase: ", error);
+    }
+  };
+
+  const generatePDF = async () => {
+    try {
+      const htmlContent = `
+        <h1>Medicine list</h1>
+        <ul>
+          ${meds.map((item) => `<li>${item.medicine} - Dosage: ${item.dosage}, Type: ${item.type}, Unit: ${item.unit}</li>`).join('')}
+        </ul>
+      `;
+
+      const { uri } = await printToFileAsync({ html: htmlContent });
+
+      await shareAsync(uri);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
     }
   };
 
@@ -80,12 +134,13 @@ export default function Medicine() {
       <View style={styles.medicineDetails}>
         <Text style={styles.itemList}>Dosage: {item.dosage}</Text>
         <Text style={styles.itemList}>Type: {item.type}</Text>
+        <Text style={styles.itemList}>Unit: {item.unit}</Text>
       </View>
       <View style={styles.medicineButtons}>
-        <TouchableOpacity onPress={() => handleEditMedicine(index)}>
+        <TouchableOpacity onPress={() => editMedicine(index)}>
           <Text style={styles.editButton}>Edit</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleDeleteMedicine(index)}>
+        <TouchableOpacity onPress={() => takeMedicine(index)}>
           <Text style={styles.deleteButton}>Take medicine</Text>
         </TouchableOpacity>
       </View>
@@ -99,7 +154,8 @@ export default function Medicine() {
         <ModalComponent
           visible={isModalVisible}
           onClose={() => setIsModalVisible(false)}
-          onSave={handleSaveMedicine}
+          onSave={(medicine, dosage, type, unit, date, formattedDate) => 
+            handleSaveMedicine(medicine, dosage, type, unit, date, formattedDate)}
           medicine={medicine}
           setMedicine={setMedicine}
           dosage={dosage}
@@ -108,16 +164,23 @@ export default function Medicine() {
           setType={setType}
           unit={unit}
           setUnit={setUnit}
+          formatDate={formatDate}
         />
       </View>
       <FlatList
+        style={styles.flatListContainer}
         data={meds}
         renderItem={renderItem}
         keyExtractor={(item, index) => item.id}
       />
-      <TouchableOpacity style={styles.addButton} onPress={toggleModal}>
-        <Text style={styles.addButtonText}>+</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.pdfButton} onPress={generatePDF}>
+          <Text style={styles.pdfButtonText}>Create PDF</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.addButton} onPress={toggleModal}>
+          <Text style={styles.addButtonText}>+</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -144,15 +207,44 @@ const styles = StyleSheet.create({
     backgroundColor: "#189ab4",
     padding: 20,
     borderRadius: 10,
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
+    marginRight: 10,
+    flex: 1,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   addButtonText: {
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
     fontSize: 20,
+  },
+  pdfButton: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 10,
+    marginRight: 10,
+    flex: 1,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    marginBottom: 15,
+  },
+  flatListContainer: {
+    flex: 1,
   },
   medicineCard: {
     backgroundColor: "#fff",
@@ -196,4 +288,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 18,
   },
+  pdfButtonText: {
+    color: "#05445e",
+    fontWeight: "bold",
+    fontSize: 18,
+  }
 });
