@@ -24,94 +24,9 @@ import { QuerySnapshot, onSnapshot, serverTimestamp } from './firebase/Config';
 import { useRef } from 'react';
 
 
-export default function App(props, Location) {
+export default function App() {
 
   const Stack = createNativeStackNavigator();
-  const [currentStepCount, setCurrentStepCount] = useState('');
-  const cameraRef = useRef(null);
-
-
-  useEffect(() => {
-    const q = query(collection(firestore, STEPS));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      querySnapshot.forEach((doc) => {
-        setCurrentStepCount(doc.data().number);
-      });
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const saveStepCount = async (stepCount) => {
-    try {
-      const docRef = await addDoc(collection(firestore, STEPS), {
-        number: stepCount,
-        created: serverTimestamp()
-      });
-      setCurrentStepCount('');
-      console.log('Steps saved');
-    } catch (error) {
-      console.error('Error saving steps:', error);
-    }
-  };
-
-  const save = async (stepCount) => {
-    try {
-      const docRef = await addDoc(collection(firestore, STEPS), {
-        number: stepCount,
-        created: serverTimestamp()
-      });
-      console.log('Steps saved.')
-    } catch (error) {
-      console.log('Error saving steps: ', error)
-    }
-
-    useEffect(() => {
-      const q = query(collection(firestore, STEPS));
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const tempSteps = [];
-
-        querySnapshot.forEach((doc) => {
-          const stepObject = {
-            id: doc.id,
-            number: doc.data().number,
-            created: convertFirebaseTimeStampToJS(doc.data().created)
-          };
-          tempSteps.push(stepObject);
-        });
-      });
-
-
-      return () => unsubscribe();
-    }, []);
-
-
-    useEffect(() => {
-      let subscription;
-      const subscribeToStepCount = async () => {
-        const start = new Date();
-        const end = new Date();
-        start.setHours(0, 0, 0, 0);
-        try {
-          const { steps } = await Pedometer.getStepCountAsync(start, end);
-          setCurrentStepCount(steps);
-          subscription = Pedometer.watchStepCount(result => {
-            setCurrentStepCount(result.steps)
-          })
-        } catch (error) {
-          console.error("Error getting step count:", error);
-        }
-        subscribeToStepCount();
-        return () => {
-          if (subscription) {
-            subscription.remove()
-          }
-        };
-      };
-
-    }, []);
-
-  }
 
   //kalenteri suuremmaksi
 
@@ -205,7 +120,7 @@ export default function App(props, Location) {
           name="Camera"
           component={Camera}
           options={{
-            tabBarLabel: 'Camera',
+            tabBarLabel: 'MyCamera',
             tabBarIcon: ({ color, size }) => (
               <Icon name="camera" color={color} size={size} />
             ),
