@@ -6,7 +6,7 @@ import {
   FlatList,
   StyleSheet
 } from "react-native";
-import { collection, addDoc, doc, updateDoc, onSnapshot } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc, Timestamp, onSnapshot } from "firebase/firestore";
 import { firestore } from '../firebase/Config';
 import ModalComponent from '../components/ModalComponent';
 import { printToFileAsync } from 'expo-print';
@@ -19,7 +19,6 @@ export default function Medicine() {
   const [dosage, setDosage] = useState('');
   const [type, setType] = useState('');
   const [unit, setUnit] = useState('');
-
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(firestore, 'medicines'), (snapshot) => {
@@ -35,57 +34,21 @@ export default function Medicine() {
     setIsModalVisible(!isModalVisible);
   };
 
-  const formatDate = (date) => {
-    if (!date) {
-      return null;
-    }
-  
-    if (date instanceof Date) {
-      const year = date.getFullYear();
-      let month = date.getMonth() + 1;
-      if (month < 10) {
-        month = '0' + month;
-      }
-      let day = date.getDate();
-      if (day < 10) {
-        day = '0' + day;
-      }
-      return `${year}-${month}-${day}`;
-    } else if (date.toDate instanceof Function) {
-      const timestamp = date.toDate();
-      const year = timestamp.getFullYear();
-      let month = timestamp.getMonth() + 1;
-      if (month < 10) {
-        month = '0' + month;
-      }
-      let day = timestamp.getDate();
-      if (day < 10) {
-        day = '0' + day;
-      }
-      return `${year}-${month}-${day}`;
-    }
-  
-    return date;
-  };
-  
-
   const handleSaveMedicine = async (medicine, dosage, type, unit) => {
     try {
-      const formattedDate = formatDate(new Date)
       await addDoc(collection(firestore, 'medicines'), {
         medicine: medicine,
         dosage: dosage,
         type: type,
         unit: unit,
         taken: false,
-        timestamp: formattedDate
+        timestamp: Timestamp.now(),
       });
       toggleModal();
     } catch (error) {
       console.error('Error adding medicine: ', error)
     }
   };
-
 
   const editMedicine = (index) => {
     const medicineToEdit = meds[index];
@@ -114,7 +77,7 @@ export default function Medicine() {
       const htmlContent = `
         <h1>Medicine list</h1>
         <ul>
-          ${meds.map((item) => `<li>${item.medicine} - Dosage: ${item.dosage}, Type: ${item.type}, Unit: ${item.unit}</li>`).join('')}
+          ${meds.map((item) => `<li>${item.medicine} - Dosage: ${item.dosage}, Type: ${item.type}</li>`).join('')}
         </ul>
       `;
 
@@ -134,7 +97,6 @@ export default function Medicine() {
       <View style={styles.medicineDetails}>
         <Text style={styles.itemList}>Dosage: {item.dosage}</Text>
         <Text style={styles.itemList}>Type: {item.type}</Text>
-        <Text style={styles.itemList}>Unit: {item.unit}</Text>
       </View>
       <View style={styles.medicineButtons}>
         <TouchableOpacity onPress={() => editMedicine(index)}>
@@ -154,8 +116,7 @@ export default function Medicine() {
         <ModalComponent
           visible={isModalVisible}
           onClose={() => setIsModalVisible(false)}
-          onSave={(medicine, dosage, type, unit, date, formattedDate) => 
-            handleSaveMedicine(medicine, dosage, type, unit, date, formattedDate)}
+          onSave={handleSaveMedicine}
           medicine={medicine}
           setMedicine={setMedicine}
           dosage={dosage}
@@ -164,7 +125,6 @@ export default function Medicine() {
           setType={setType}
           unit={unit}
           setUnit={setUnit}
-          formatDate={formatDate}
         />
       </View>
       <FlatList
@@ -209,14 +169,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginRight: 10,
     flex: 1,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   addButtonText: {
     color: "white",

@@ -5,10 +5,10 @@ import {Picker} from '@react-native-picker/picker';
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
-const ModalComponent = ({ visible, onClose, onSave, medicine, setMedicine, dosage, setDosage, type, setType, unit, setUnit, }) => {
+const ModalComponent = ({ visible, onClose, onSave, medicine, setMedicine, dosage, setDosage, type, setType, unit, setUnit }) => {
   const [step, setStep] = useState(1);
 
-  const handleSaveMedicine = async (medicine, dosage, type, unit, formatDate) => {
+  const handleSaveMedicine = () => {
     if (step === 1) {
       setStep(2);
     } else if (step === 2) {
@@ -16,9 +16,7 @@ const ModalComponent = ({ visible, onClose, onSave, medicine, setMedicine, dosag
     } else if (step === 3) {
       setStep(4);
     } else {
-      const date = new Date();
-      const formattedDate = formatDate(date);
-      onSave(medicine, dosage, type, unit); // Corrected the argument passed to onSave
+      onSave(medicine, dosage, type, unit);
       setMedicine('');
       setDosage('');
       setType('');
@@ -27,40 +25,7 @@ const ModalComponent = ({ visible, onClose, onSave, medicine, setMedicine, dosag
       onClose();
     }
   };
-  
-  const formatDate = (date) => {
-    if (!date) {
-      return null;
-    }
-  
-    if (date instanceof Date) {
-      const year = date.getFullYear();
-      let month = date.getMonth() + 1;
-      if (month < 10) {
-        month = '0' + month;
-      }
-      let day = date.getDate();
-      if (day < 10) {
-        day = '0' + day;
-      }
-      return `${year}-${month}-${day}`;
-    } else if (date.toDate instanceof Function) {
-      const timestamp = date.toDate(); 
-      const year = timestamp.getFullYear();
-      let month = timestamp.getMonth() + 1;
-      if (month < 10) {
-        month = '0' + month;
-      }
-      let day = timestamp.getDate();
-      if (day < 10) {
-        day = '0' + day;
-      }
-      return `${year}-${month}-${day}`;
-    }
-  
-    return date;
-  };
-  
+
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.modalBackground}>
@@ -125,11 +90,7 @@ const ModalComponent = ({ visible, onClose, onSave, medicine, setMedicine, dosag
               </Picker>
               <View style={styles.buttonContainer}>
                 <Button title="Previous" onPress={() => setStep(3)} />
-                <Button title="Save" onPress={() => {
-                    const date = new Date(); // Get current date
-                    const formattedDate = formatDate(date);
-                  handleSaveMedicine(medicine, dosage, type, unit)
-                  onSave(medicine, dosage, type, unit, date, formattedDate)}} />
+                <Button title="Save" onPress={handleSaveMedicine} />
               </View>
             </>
           )}
